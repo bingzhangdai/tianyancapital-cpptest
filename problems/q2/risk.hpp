@@ -10,6 +10,7 @@
 namespace cpptest {
 
 class IRisk {
+protected:
     std::mutex m_mutex;
 public:
     virtual bool Check(const Order&) = 0;

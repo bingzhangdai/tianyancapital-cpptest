@@ -11,9 +11,28 @@ target_sources(cpptest_q1
     q1/market_data_processor.hpp
     q2/order.hpp
     q2/risk.hpp
+    q3/api.hpp
+    q3/order_rtn.hpp
 )
 
 target_include_directories(cpptest_q1 INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
+include(FetchContent)
 
+FetchContent_Declare(
+  zeromq
+  GIT_REPOSITORY https://github.com/zeromq/libzmq.git
+  GIT_TAG master
+)
+
+FetchContent_Declare(
+  cppzmq
+  GIT_REPOSITORY https://github.com/zeromq/cppzmq.git
+  GIT_TAG master
+)
+
+FetchContent_MakeAvailable(zeromq cppzmq)
+
+
+target_link_libraries(cpptest_q1 INTERFACE cppzmq)
 

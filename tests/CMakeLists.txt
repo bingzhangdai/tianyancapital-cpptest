@@ -14,6 +14,7 @@ target_sources(cpptest
   PRIVATE
     q1.cpp
     q2.cpp
+    q3.cpp
 )
 
 target_link_libraries(cpptest GTest::gtest_main GTest::gmock_main cpptest::q1)
