@@ -9,10 +9,12 @@ namespace cpptest {
 using namespace std::chrono_literals;
 
 TEST(TestStrategy, SendOrderInternal) {
-    Strategy s(true);
+    // auto s = std::make_shared<Strategy>(true);
+    auto s = new Strategy(true);
     std::this_thread::sleep_for(100ms);
-    s.OnMarketData(MarketData());
+    s->OnMarketData(MarketData());
     std::this_thread::sleep_for(100ms);
+    EXPECT_EQ(0, s->m_queue.Count());
 }
 
 }

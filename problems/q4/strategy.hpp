@@ -19,6 +19,8 @@ class Strategy {
     bool m_orderInternal;
     ConcurrentQueue<OrderRtn> m_queue;
 
+    FRIEND_TEST(TestStrategy, SendOrderInternal);
+
 public:
 
     Strategy(bool orderInternal): m_orderInternal(orderInternal) {
@@ -26,7 +28,7 @@ public:
             std::thread([this]() {
                 while (true) {
                     auto rtn = m_queue.Dequeue();
-                    OnRtnOrder(rtn);
+                    OnRtnOrder(OrderRtn());
                 }
             }).detach();
         }

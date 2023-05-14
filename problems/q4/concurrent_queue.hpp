@@ -33,6 +33,11 @@ public:
         return item;
     }
 
+    int Count() {
+        std::unique_lock<std::mutex> lk(m_mutex);
+        return m_queue.size();
+    }
+
 };
 
 }
