@@ -1,75 +1,90 @@
 #pragma once
 
-#include <zmq.hpp>
-#include <optional>
-
 #include "q3/order_rtn.hpp"
+#include "q3/singleton.hpp"
+
+#include <memory>
+#include <vector>
 
 namespace cpptest {
 
-const char *conncetion_string = "ipc://cpptest";
-
-class Api {
-    zmq::context_t ctx;
-    zmq::socket_t sock;
-private:
-    Api(): sock(ctx, zmq::socket_type::pub) {
-        sock.bind(conncetion_string);
-    }
-
-    static Api& GetInstance() {
-        static Api instance;
-        return instance;
-    }
-
-public:
-    Api(const Api&) = delete;
-    Api& operator=(const Api&) = delete;
-
-    static void OnRtnOrder(const OrderRtn& rtn) {
-        auto buf = zmq::buffer(&rtn, sizeof(OrderRtn));
-        GetInstance().sock.send(buf, zmq::send_flags::dontwait);
-    }
-};
-
 class ModuleA {
-private:
-    zmq::context_t ctx;
-    zmq::socket_t sock;
 public:
-    ModuleA(): sock(ctx, zmq::socket_type::sub) {
-        sock.connect(conncetion_string);
-    }
-
-    std::optional<OrderRtn> GetMessage() {
-        char buf[sizeof(OrderRtn)];
-        auto res = sock.recv(zmq::buffer(buf));
-        if (!res) {
-            // log error
-            return {};
-        }
-        return *reinterpret_cast<OrderRtn *>(buf);
+    void OnRtnOrderA(const OrderRtn& rtn) {
     }
 };
 
 class ModuleB {
-private:
-    zmq::context_t ctx;
-    zmq::socket_t sock;
 public:
-    ModuleB(): sock(ctx, zmq::socket_type::sub) {
-        sock.connect(conncetion_string);
-    }
-
-    std::optional<OrderRtn> GetMessage() {
-        char buf[sizeof(OrderRtn)];
-        auto res = sock.recv(zmq::buffer(buf));
-        if (!res) {
-            // log error
-            return {};
-        }
-        return *reinterpret_cast<OrderRtn *>(buf);
+    void OnRtnOrderB(const OrderRtn& rtn) {
     }
 };
 
+class ModuleC {
+public:
+    void OnRtnOrderC(const OrderRtn& rtn) {
+    }
+};
+
+class IModuleProxy {
+public:
+    virtual void OnRtnOrder(const OrderRtn& rtn) = 0;
+};
+
+class ModuleAProxy: public IModuleProxy {
+    std::shared_ptr<ModuleA> m_module;
+public:
+    ModuleAProxy(std::shared_ptr<ModuleA> module): m_module(module) {}
+    void OnRtnOrder(const OrderRtn& rtn) {
+        m_module->OnRtnOrderA(rtn);
+    }
+};
+
+class ModuleBProxy: public IModuleProxy {
+    std::shared_ptr<ModuleB> m_module;
+public:
+    ModuleBProxy(std::shared_ptr<ModuleB> module): m_module(module) {}
+    void OnRtnOrder(const OrderRtn& rtn) {
+        m_module->OnRtnOrderB(rtn);
+    }
+};
+
+class ModuleCProxy: public IModuleProxy {
+    std::shared_ptr<ModuleC> m_module;
+public:
+    ModuleCProxy(std::shared_ptr<ModuleC> module): m_module(module) {}
+    void OnRtnOrder(const OrderRtn& rtn) {
+        m_module->OnRtnOrderC(rtn);
+    }
+};
+
+class Publisher: public Singleton<Publisher> {
+private:
+    std::vector<std::shared_ptr<IModuleProxy>> m_callbacks;
+public:
+    void Register(std::shared_ptr<IModuleProxy> callback) {
+        m_callbacks.push_back(callback);
+    }
+
+    void OnRtnOrder(const OrderRtn& rtn) {
+        for (const auto& callback : m_callbacks) {
+            callback->OnRtnOrder(rtn);
+        }
+    }
+
+};
+
+class Api {
+public:
+    static void Register(std::shared_ptr<IModuleProxy> callback) {
+        Publisher::Instance().Register(callback);
+    }
+
+    static void OnRtnOrder(const OrderRtn& rtn) {
+        Publisher::Instance().OnRtnOrder(rtn);
+    }
+
+};
+
 }
+

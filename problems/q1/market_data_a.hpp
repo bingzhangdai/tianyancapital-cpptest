@@ -29,4 +29,21 @@ struct MarketDataA {
     // 其余字段
     // .......
 };
+
+template <typename T>
+struct MarketDataTraits;
+
+template <>
+struct MarketDataTraits<MarketDataA> {
+    static const char *GetSymbol(const MarketDataA& data) {
+        return data.instrumentId;
+    }
+    static double GetBidPrice1(const MarketDataA& data) {
+        return data.bidPrice1;
+    }
+    static double GetAskPrice1(const MarketDataA& data) {
+        return data.askPrice1;
+    }
+};
+
 }
