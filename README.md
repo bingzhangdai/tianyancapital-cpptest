@@ -67,7 +67,7 @@ cd build && ctest --output-on-failure
 
 ## 4. 回报触发
 
-题目等价于如何在`SendOrderInternal`里调用`OnRtnOrder`，但由于在`OnMarketData`和`OnRtnOrder`里都有锁，这里不能直接调用。一般拿来说办法有以下几种，我觉得都可以
+题目等价于如何在`SendOrderInternal`里调用`OnRtnOrder`，但由于在`OnMarketData`和`OnRtnOrder`里都有锁，这里不能直接调用。一般来说办法有以下几种，我觉得都可以
 ```cpp
 // 内部报单
 void Strategy::SendOrderInternal(const Order& order) {
@@ -86,7 +86,7 @@ void Strategy::SendOrderInternal(const Order& order) {
 
 因为题目提到“可以借助标准库或任何第三方库”，应该是想让采用方法2，用线程池的思路、
 
-这里还有第三种思路，因为`OnRtnOrder`里有锁，所以即使线程池也不能达到并行处理的目的，于是我们可以简单用一个独立的线程来按顺序处理，那么我们可以简单有一个队列，`SendOrderInternal`时候把`Order`对象push进队列里，一个线程去轮询pop队列，拿到对象处理。在代码里采用这种方法完成。
+这里还有第三种思路，因为`OnRtnOrder`里有锁，所以即使线程池也不能达到并行处理的目的，于是我们可以简单用一个独立的线程来按顺序处理，那么我们可以简单有一个队列，`SendOrderInternal`时候把`OrderRtn`对象push进队列里，一个线程去轮询pop队列，拿到对象处理。**在代码里采用这种方法完成**。
 
 ### 更多思考
 
