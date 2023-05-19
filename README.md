@@ -97,7 +97,6 @@ void Strategy::SendOrderInternal(const Order& order) {
 ```cpp
 class Strategy {
     void OnRtnOrderUnsafe(const OrderRtn& rtn) {
-        std::unique_lock<std::mutex> lock(m_lock);
         // 仓位更新，log打印，策略状态维护等
         // ....
     }
@@ -131,7 +130,6 @@ public:
 
     void OnRtnOrder(const OrderRtn& rtn) {
         std::unique_lock<std::mutex> lock(m_lock);
-        // 仓位更新，log打印，策略状态维护等
         OnRtnOrderUnsafe(rtn)
     }
 };
